@@ -1,3 +1,27 @@
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import java.io.*; 
+import java.util.Iterator; 
+import oscP5.*; 
+import netP5.*; 
+import ddf.minim.*; 
+import ddf.minim.analysis.*; 
+import peasy.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class rosePatterns extends PApplet {
+
 //musicVisEx1
 //No extra imports needed 
 //GOD
@@ -32,13 +56,13 @@
 //TODO: Add more scenes
 
 
-import java.io.*;
-import java.util.Iterator;
-import oscP5.*;
-import netP5.*;
-import ddf.minim.*;
-import ddf.minim.analysis.*;
-import peasy.*;
+
+
+
+
+
+
+
 
 OscP5 oscP5;
 Minim minim;
@@ -55,9 +79,9 @@ float spectrumScale = 32;
 
 // Variables that define the "areas" of the spectrum
 // For example, for bass, we take only the first 4% of the total spectrum
-float specLow = 0.03; // 3%
-float specMid = 0.125;  // 12.5%
-float specHi = 0.20;   // 20%
+float specLow = 0.03f; // 3%
+float specMid = 0.125f;  // 12.5%
+float specHi = 0.20f;   // 20%
 
 // This leaves 64% of the possible spectrum that will not be used.
 // These values are generally too high for the human ear anyway.
@@ -93,18 +117,18 @@ float lastCycle = 0;
 float lastTime = 0;
 int orbitHeight = 9;
 int h = orbitHeight - 4;
-float inc = 0.00;
+float inc = 0.00f;
 int roseRadius = 400;
 int r = 200;
 float eyeRadius = 150;
 int offWidth = 1920/2;
 int offHeight = 1080/2;
 
-void setup(){
+public void setup(){
   //Set title of the window
   surface.setTitle("dominic Live");
   
-  size(1920,1080,P3D);
+  
   textSize(40);
   oscP5 = new OscP5(this,2020);
   minim = new Minim(this);
@@ -156,7 +180,7 @@ void setup(){
   noCursor();
 }
 
-void draw(){
+public void draw(){
   
    //forward FFT frame
    fft.forward(in.mix);
@@ -203,7 +227,7 @@ void draw(){
   
    //Volume for all frequencies at this time, with higher sounds more prominent.
    //This allows the animation to go faster for higher pitched sounds that are more noticeable.
-   float scoreGlobal = 0.66*scoreLow + 0.8*scoreMid + 1*scoreHi;
+   float scoreGlobal = 0.66f*scoreLow + 0.8f*scoreMid + 1*scoreHi;
   
    //Subtle color of background
    //background(scoreLow/10+inc*2, scoreMid/10+inc*240, scoreHi/10+inc*240);
@@ -269,7 +293,7 @@ void draw(){
   
   fill(random(255),random(255), random(255));
   
-  if (beat.isOnset()) eyeRadius = eyeRadius*0.9;
+  if (beat.isOnset()) eyeRadius = eyeRadius*0.9f;
   else eyeRadius = 150;
   ellipse(offWidth, offHeight, 2*eyeRadius, 2*eyeRadius);
   stroke(0, 50);
@@ -323,8 +347,8 @@ void draw(){
    
    noFill();
    strokeWeight(2);
-   for (float a = 0; a < TWO_PI * d; a += 0.02) {
-   float r = 400 * cos(k * a) + (scoreLow * 0.4)*(inc/10);
+   for (float a = 0; a < TWO_PI * d; a += 0.02f) {
+   float r = 400 * cos(k * a) + (scoreLow * 0.4f)*(inc/10);
    float x = r * sin(a);
    float y = r * cos(a);
    vertex(x, y);
@@ -333,7 +357,7 @@ void draw(){
    endShape();
    
    if(inc >= 0 && inc < 40 ){
-   inc+=0.001;
+   inc+=0.001f;
    }
    else if(inc > 40){
      inc = 0;
@@ -348,7 +372,7 @@ void draw(){
 }
 
 
-void oscEvent(OscMessage m){
+public void oscEvent(OscMessage m){
   float t = millis();
   int i;
   int orbit = -1;
@@ -386,11 +410,11 @@ class Orbit{
   Boolean state = false;
   ArrayList<Event> events = new ArrayList<Event>();
   
-  void add(Event event){
+  public void add(Event event){
     events.add(0,event);
     state = !state;
   }
-  void draw(float cycle){
+  public void draw(float cycle){
     Boolean state = this.state;
     noFill();
     beginShape();
@@ -422,7 +446,7 @@ class Orbit{
 
 //Draws a circular border
 //TODO: Change via OSC/audio/superformula
-void drawCircle(int sides, float r)
+public void drawCircle(int sides, float r)
 {
     float angle = 360 / sides;
     beginShape();
@@ -468,10 +492,10 @@ class Wall {
   }
   
   //Display function
-  void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
+  public void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Color determined by low, medium and high sounds
     //Opacity determined by overall volume
-    color displayColor = color(scoreLow, scoreMid, scoreHi, scoreGlobal);
+    int displayColor = color(scoreLow, scoreMid, scoreHi, scoreGlobal);
     
     //Make the lines disappear in the distance to give an illusion of fog
     fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
@@ -493,7 +517,7 @@ class Wall {
     popMatrix();
     
     //Second strip, the one that is always the same size
-    displayColor = color(scoreLow*0.5, scoreMid*0.5, scoreHi*0.5, scoreGlobal);
+    displayColor = color(scoreLow*0.5f, scoreMid*0.5f, scoreHi*0.5f, scoreGlobal);
     fill(displayColor, (scoreGlobal/5000)*(255+(z/25)));
     //Transformation matrix
     pushMatrix();
@@ -512,6 +536,16 @@ class Wall {
     z+= (pow((scoreGlobal/150), 2));
     if (z >= maxZ) {
       z = startingZ;  
+    }
+  }
+}
+  public void settings() {  size(1920,1080,P3D); }
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "rosePatterns" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
     }
   }
 }
