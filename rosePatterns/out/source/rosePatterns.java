@@ -90,6 +90,7 @@ float specHi = 0.20f;   // 20%
 float scoreLow = 0;
 float scoreMid = 0;
 float scoreHi = 0;
+float scoreGlobal = 0;
 
 // Previous values, to soften the reduction
 float oldScoreLow = scoreLow;
@@ -109,6 +110,8 @@ PFont font;
 
 //Cycles per second
 float cps = 0;
+//Cycles per hour
+float cph = 0;
 //Number of cycles data that are shown?
 float showCycles = 4;
 //TODO: find the number of orbits automatically
@@ -118,6 +121,9 @@ float lastTime = 0;
 int orbitHeight = 9;
 int h = orbitHeight - 4;
 float inc = 0.00f;
+float theta;
+float theta_vel;
+float theta_acc;
 int roseRadius = 400;
 int r = 200;
 float eyeRadius = 150;
@@ -175,8 +181,9 @@ public void setup(){
       orbits.add(new Orbit());
     }
   }
-  
-
+  theta = 0;
+  theta_vel = 0;
+  theta_acc = 0.0001f;
   noCursor();
 }
 
@@ -185,6 +192,155 @@ public void draw(){
    //forward FFT frame
    fft.forward(in.mix);
    
+   stroke(0);
+   
+  //  translate(width/2, height/2);
+   
+   //Calculate number of cycles per hour ( a set will last about an hour)
+   cph = cps * 3600;
+   
+   
+   //TODO: Use value of lastCycle to sequence different scenes 
+   //(trigger different functions)
+   sceneSwitcher();
+
+  if(inc >= 0 && inc < 40 ){
+   inc+=0.001f;
+   }
+   else if(inc > 40){
+     inc = 0;
+   }
+  
+   theta_vel += theta_acc;
+   theta += theta_vel;
+  
+}
+
+public void sceneSwitcher(){
+  // Each scene will last about 5 minutes 
+  float scene = cph / 12;
+
+    if( lastCycle <= (scene * 1) ){
+    drawTidalCycles();
+    drawAllSeeingEye();
+  }
+  else if( lastCycle > (scene * 1) && lastCycle <= (scene * 2) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+  }
+  else if( lastCycle > (scene * 2) && lastCycle <= (scene * 3) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+  }
+  else if( lastCycle > (scene * 3) && lastCycle <= (scene * 4) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+  }
+  else if( lastCycle > (scene * 4) && lastCycle <= (scene * 5) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+  }
+  else if( lastCycle > (scene * 5) && lastCycle <= (scene * 6) ){
+    drawTidalCycles();
+    drawRosePatterns();
+  }
+  else if( lastCycle > (scene * 6) && lastCycle <= (scene * 7) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawAllSeeingEye();
+    drawRosePatterns();
+  }
+  else if( lastCycle > (scene * 7) && lastCycle <= (scene * 8) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawRosePatterns();
+  }
+  else if( lastCycle > (scene * 8) && lastCycle <= (scene * 9) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawRosePatterns();
+  }
+  else if( lastCycle > (scene * 9) && lastCycle <= (scene * 10) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawRosePatterns();
+  }
+  else if( lastCycle > (scene * 10) && lastCycle <= (scene * 11) ){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawRosePatterns();
+  }
+  else if (lastCycle >= (scene * 11) && lastCycle < cph){
+    drawFFTCorridor();
+    drawTidalCycles();
+    drawAllSeeingEye();
+    drawRosePatterns();
+    drawCrucifix();
+     
+     fill(0);
+     text(lastCycle, 0,0,0);
+  }
+  else{
+     fill(0);
+     text(lastCycle, 0,0,0);
+  }
+}
+
+public void drawTidalCycles(){
+  float now = millis();
+  float elapsed = now - lastTime;
+  float cycle = ((elapsed * cps)/1000) + lastCycle;
+   
+  
+   //Guessing this uses as many threads as orbits and syncs them?
+   synchronized(orbits){
+     pushMatrix();
+     for(int i = 0; i < orbitn; ++i){
+       Orbit o = orbits.get(i);
+       translate(0, orbitHeight);
+       o.draw(cycle);
+     }
+     popMatrix();
+   }
+}
+
+public void drawAllSeeingEye(){
+  background(-1);
+  beat.detect(in.mix);
+  fill(random(255),random(255), random(255));
+  
+  if (beat.isOnset()) eyeRadius = eyeRadius*0.9f;
+  else eyeRadius = 150;
+  ellipse(offWidth, offHeight, 2*eyeRadius, 2*eyeRadius);
+  stroke(0, 50);
+  
+  int bsize = in.bufferSize();
+  for (int i = 0; i < bsize - 1; i+=5)
+  {
+    float x = (r)*cos(i*2*PI/bsize) + offWidth;
+    float y = (r)*sin(i*2*PI/bsize) + offHeight;
+    float x2 = (r + in.left.get(i)*100)*cos(i*2*PI/bsize) + offWidth;
+    float y2 = (r + in.left.get(i)*100)*sin(i*2*PI/bsize) + offHeight;
+    line(x, y, x2, y2);
+  }
+  beginShape();
+  noFill();
+  stroke(0, 50);
+  for (int i = 0; i < bsize; i+=30)
+  {
+    float x2 = (r + in.left.get(i)*100)*cos(i*2*PI/bsize) + offWidth;
+    float y2 = (r + in.left.get(i)*100)*sin(i*2*PI/bsize) + offHeight;
+    vertex(x2, y2);
+    pushStyle();
+    stroke(0);
+    strokeWeight(1);
+    point(x2, y2);
+    popStyle();
+  }
+  endShape();
+}
+
+public void drawFFTCorridor(){
    //Calculation of "scores" (power) for three categories of sound
   //First, save the old values
   oldScoreLow = scoreLow;
@@ -230,8 +386,8 @@ public void draw(){
    float scoreGlobal = 0.66f*scoreLow + 0.8f*scoreMid + 1*scoreHi;
   
    //Subtle color of background
-   //background(scoreLow/10+inc*2, scoreMid/10+inc*240, scoreHi/10+inc*240);
-   background(-1);
+   background(scoreLow/10+inc*2, scoreMid/10+inc*240, scoreHi/10+inc*240);
+   //background(-1);
    
   //Walls lines, here you have to keep the value of the previous strip and the next one to connect 
   //them together
@@ -250,7 +406,7 @@ public void draw(){
     float bandValue = fft.getBand(i)*(1 + (i/50));
     
     //Selection of color according to the strengths of different types of sounds
-    stroke((random(240)+scoreLow), (random(240)+scoreMid), (random(240)+scoreHi), 255-i);
+    stroke((random(20)+scoreLow), (random(240)+scoreMid), (random(240)+scoreHi), 255-i);
     strokeWeight(1 + (scoreGlobal/120));
     
     //Lower left line
@@ -284,59 +440,11 @@ public void draw(){
     float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
     walls[i].display(scoreLow, scoreMid, scoreHi, intensity, scoreGlobal);
   }
-   stroke(0);
-   beat.detect(in.mix);
-   float now = millis();
-   float elapsed = now - lastTime;
-   float cycle = ((elapsed * cps)/1000) + lastCycle;
-   
-  
-  fill(random(255),random(255), random(255));
-  
-  if (beat.isOnset()) eyeRadius = eyeRadius*0.9f;
-  else eyeRadius = 150;
-  ellipse(offWidth, offHeight, 2*eyeRadius, 2*eyeRadius);
-  stroke(0, 50);
-  //TODO: Make this global
-  int bsize = in.bufferSize();
-  for (int i = 0; i < bsize - 1; i+=5)
-  {
-    float x = (r)*cos(i*2*PI/bsize) + offWidth;
-    float y = (r)*sin(i*2*PI/bsize) + offHeight;
-    float x2 = (r + in.left.get(i)*100)*cos(i*2*PI/bsize) + offWidth;
-    float y2 = (r + in.left.get(i)*100)*sin(i*2*PI/bsize) + offHeight;
-    line(x, y, x2, y2);
-  }
-  beginShape();
-  noFill();
-  stroke(0, 50);
-  for (int i = 0; i < bsize; i+=30)
-  {
-    float x2 = (r + in.left.get(i)*100)*cos(i*2*PI/bsize) + offWidth;
-    float y2 = (r + in.left.get(i)*100)*sin(i*2*PI/bsize) + offHeight;
-    vertex(x2, y2);
-    pushStyle();
-    stroke(0);
-    strokeWeight(1);
-    point(x2, y2);
-    popStyle();
-  }
-  endShape();
-   
-   //Guessing this uses as many threads as orbits and syncs them?
-   synchronized(orbits){
-     pushMatrix();
-     for(int i = 0; i < orbitn; ++i){
-       Orbit o = orbits.get(i);
-       translate(0, orbitHeight);
-       o.draw(cycle);
-     }
-     popMatrix();
-   }
-   
-   translate(width / 2, height / 2);
+}
 
-   //drawCircle(72,523);
+public void drawRosePatterns(){
+   int circSides = 72;
+   drawCircle(circSides,(523 + (scoreGlobal/10)));
    
    //Rose Pattern Example
    float d = 8 + inc;
@@ -355,21 +463,17 @@ public void draw(){
    }
    
    endShape();
-   
-   if(inc >= 0 && inc < 40 ){
-   inc+=0.001f;
-   }
-   else if(inc > 40){
-     inc = 0;
-   }
-    //TODO: make more complex Crucifix code
-   stroke(255);
-   fill(255);
-   rect(-100, -50, 200, 30, 7);
-   rect(-15,-120,30,250, 7);
-   fill(0);
-   text(lastCycle, 0,0,0);
 }
+
+public void drawCrucifix(){
+  //TODO: make more complex Crucifix code
+  stroke(255, (lastCycle/5));
+  fill(255, (lastCycle/5));
+  rect(-100, -50, 200, 30, 7);
+  rect(-15,-120,30,250, 7);
+}
+
+
 
 
 public void oscEvent(OscMessage m){
@@ -404,8 +508,6 @@ public void oscEvent(OscMessage m){
   }
 }
 
-
-
 class Orbit{
   Boolean state = false;
   ArrayList<Event> events = new ArrayList<Event>();
@@ -416,29 +518,43 @@ class Orbit{
   }
   public void draw(float cycle){
     Boolean state = this.state;
+    
     noFill();
+   
     beginShape();
     strokeWeight(2);
     //TODO: Change stroke colour based on audio and/or OSC
     stroke(random(255),random(255), random(255));
-    //TODO: Draw vertexes in a circle to create cycles border
-    //use / recreate drawCircle(int sides, float r)
+    
     vertex(width, state ? 0 : h);
+    // vertex(circleEndX,circleStartY);
     Iterator<Event> i = events.iterator();
     while(i.hasNext()){
       Event event = i.next();
-      //change pos value so it stretches around as a circle (higher showCycles might be needed)
       float posX = (event.cycle-(cycle-showCycles))/showCycles;
+      float posY =  state ? 0 : h;
+      float posYInverse = state ? h : 0;
+     
+     
       if (posX < 0){
         i.remove();
       }
       else{
-        vertex(width * posX, state ? 0 : h);
-        vertex(width * posX, state ? h : 0);   
+        // Linear plot
+        vertex(width * posX, posY);
+        vertex(width * posX, posYInverse);
         state = !state;
+        
+        //TODO: Circular plot
+        
+        
+        
+        //Show positional values in console
+        println("posX: " + posX + ". posY: " + posY);
       }
     }
     vertex(0,state ? 0 : h);
+
     endShape();
      
   }
