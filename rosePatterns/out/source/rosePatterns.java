@@ -106,6 +106,13 @@ Wall[] walls;
 
 //Array of orbits
 ArrayList<Orbit> orbits = new ArrayList<Orbit>();
+
+//Array of vertices to represent TidalCycles OSC Events
+ArrayList<PVector> eventVerts = new ArrayList<PVector>();
+ArrayList<PVector> eventVertsInv = new ArrayList<PVector>();
+
+
+//Font
 PFont font;
 
 //Cycles per second
@@ -129,6 +136,8 @@ int r = 200;
 float eyeRadius = 150;
 int offWidth = 1920/2;
 int offHeight = 1080/2;
+
+
 
 public void setup(){
   //Set title of the window
@@ -223,52 +232,63 @@ public void sceneSwitcher(){
     if( lastCycle <= (scene * 1) ){
     drawTidalCycles();
     drawAllSeeingEye();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 1) && lastCycle <= (scene * 2) ){
     drawFFTCorridor();
     drawTidalCycles();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 2) && lastCycle <= (scene * 3) ){
     drawFFTCorridor();
     drawTidalCycles();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 3) && lastCycle <= (scene * 4) ){
     drawFFTCorridor();
     drawTidalCycles();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 4) && lastCycle <= (scene * 5) ){
     drawFFTCorridor();
     drawTidalCycles();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 5) && lastCycle <= (scene * 6) ){
     drawTidalCycles();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 6) && lastCycle <= (scene * 7) ){
     drawFFTCorridor();
     drawTidalCycles();
     drawAllSeeingEye();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 7) && lastCycle <= (scene * 8) ){
     drawFFTCorridor();
     drawTidalCycles();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 8) && lastCycle <= (scene * 9) ){
     drawFFTCorridor();
     drawTidalCycles();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 9) && lastCycle <= (scene * 10) ){
     drawFFTCorridor();
     drawTidalCycles();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if( lastCycle > (scene * 10) && lastCycle <= (scene * 11) ){
     drawFFTCorridor();
     drawTidalCycles();
     drawRosePatterns();
+    drawLastCycle();
   }
   else if (lastCycle >= (scene * 11) && lastCycle < cph){
     drawFFTCorridor();
@@ -276,16 +296,20 @@ public void sceneSwitcher(){
     drawAllSeeingEye();
     drawRosePatterns();
     drawCrucifix();
-     
-     fill(0);
-     text(lastCycle, 0,0,0);
+    drawLastCycle(); 
+
   }
   else{
-     fill(0);
-     text(lastCycle, 0,0,0);
+    drawLastCycle();
   }
 }
 
+
+public void drawLastCycle(){
+    translate(width/2,height/2);
+    fill(0);
+    text(lastCycle, 0,0,0);
+}
 public void drawTidalCycles(){
   float now = millis();
   float elapsed = now - lastTime;
@@ -386,7 +410,7 @@ public void drawFFTCorridor(){
    float scoreGlobal = 0.66f*scoreLow + 0.8f*scoreMid + 1*scoreHi;
   
    //Subtle color of background
-   background(scoreLow/10+inc*2, scoreMid/10+inc*240, scoreHi/10+inc*240);
+     background(scoreLow/10+inc*240, scoreMid/10+inc*240, scoreHi/10+inc*240);
    //background(-1);
    
   //Walls lines, here you have to keep the value of the previous strip and the next one to connect 
@@ -474,8 +498,6 @@ public void drawCrucifix(){
 }
 
 
-
-
 public void oscEvent(OscMessage m){
   float t = millis();
   int i;
@@ -520,14 +542,12 @@ class Orbit{
     Boolean state = this.state;
     
     noFill();
-   
     beginShape();
     strokeWeight(2);
     //TODO: Change stroke colour based on audio and/or OSC
     stroke(random(255),random(255), random(255));
     
     vertex(width, state ? 0 : h);
-    // vertex(circleEndX,circleStartY);
     Iterator<Event> i = events.iterator();
     while(i.hasNext()){
       Event event = i.next();
@@ -545,12 +565,12 @@ class Orbit{
         vertex(width * posX, posYInverse);
         state = !state;
         
-        //TODO: Circular plot
+        // TODO: Circular plot
         
-        
-        
+
         //Show positional values in console
         println("posX: " + posX + ". posY: " + posY);
+        println("posX: " + posX + ", posYInverse: " + posYInverse);
       }
     }
     vertex(0,state ? 0 : h);
